@@ -52,7 +52,7 @@ public class MensajesModuloLogin
         return tipoRespuesta;
     }
 
-    private EnumRespuesta ValidarRespuesta(EnumRespuesta respuesta)
+    public EnumRespuesta ValidarRespuesta(EnumRespuesta respuesta)
     {
         if (respuesta == EnumRespuesta.Error) return respuesta;
 
@@ -129,9 +129,10 @@ public class MensajesModuloLogin
                     break;
 
                 case EnumOrigen.OlvidarInformacion:
-                    if (lista.Count != 1 ||
-                        !(tipos.Contains(EnumTipoValor.CorreoElectronico) || tipos.Contains(EnumTipoValor.CodigoConfirmacion)))
-                        throw new Exception("Comprobar OlvidarInformacion requiere CodigoConfirmacion o CorreoElectronico.");
+                    // Permite enviar 1 o 2 propiedades: CorreoElectronico y/o CodigoConfirmacion
+                    var permitidos = new[] { EnumTipoValor.CorreoElectronico, EnumTipoValor.CodigoConfirmacion };
+                    if (lista.Count < 1 || lista.Count > 2 || !tipos.All(t => permitidos.Contains(t)))
+                        throw new Exception("Comprobar OlvidarInformacion requiere una o dos propiedades: CorreoElectronico y/o CodigoConfirmacion.");
                     break;
 
                 default:
