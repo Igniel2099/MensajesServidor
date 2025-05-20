@@ -54,7 +54,8 @@ public class MensajesModuloLogin
 
     public EnumRespuesta ValidarRespuesta(EnumRespuesta respuesta)
     {
-        if (respuesta == EnumRespuesta.Error) return respuesta;
+        if (respuesta == EnumRespuesta.Error)
+            return respuesta;
 
         if (TipoRespuesta == EnumTipoRespuesta.Comprobar &&
             respuesta != EnumRespuesta.NoExistente &&
@@ -76,7 +77,15 @@ public class MensajesModuloLogin
     {
         var tipos = lista.Select(p => p.TipoValor).ToHashSet();
 
-        // Guardar casos según origen
+        // Nueva regla: si recuperación exitosa, sólo NombreUsuario
+        if (Origen == EnumOrigen.OlvidarInformacion && Respuesta == EnumRespuesta.Existente)
+        {
+            if (lista.Count == 1 && tipos.SetEquals(new[] { EnumTipoValor.NombreUsuario }))
+                return lista;
+            throw new Exception("OlvidarInformacion con respuesta Existente debe incluir solo NombreUsuario.");
+        }
+
+        // Guardar según origen
         if (TipoRespuesta == EnumTipoRespuesta.Guardar)
         {
             if (Origen == EnumOrigen.CrearCuenta)
@@ -92,8 +101,13 @@ public class MensajesModuloLogin
             }
             else if (Origen == EnumOrigen.OlvidarInformacion)
             {
-                if (!tipos.SetEquals(new[] { EnumTipoValor.Contraseña }))
-                    throw new Exception("Guardar OlvidarInformacion requiere Contraseña.");
+                var requeridos = new[]
+                {
+                    EnumTipoValor.NombreUsuario,
+                    EnumTipoValor.Contraseña
+                };
+                if (!tipos.SetEquals(requeridos))
+                    throw new Exception("Guardar OlvidarInformacion requiere NombreUsuario y Contraseña.");
             }
             else
             {
@@ -105,9 +119,7 @@ public class MensajesModuloLogin
         // Enviar solo CorreoElectronico
         if (TipoRespuesta == EnumTipoRespuesta.Enviar)
         {
-            if (Origen != EnumOrigen.OlvidarInformacion)
-                throw new Exception("Enviar solo está permitido para OlvidarInformacion.");
-            if (!tipos.SetEquals(new[] { EnumTipoValor.CorreoElectronico }))
+            if (Origen != EnumOrigen.OlvidarInformacion || !tipos.SetEquals(new[] { EnumTipoValor.CorreoElectronico }))
                 throw new Exception("Enviar OlvidarInformacion requiere CorreoElectronico.");
             return lista;
         }
@@ -121,20 +133,15 @@ public class MensajesModuloLogin
                     if (!tipos.SetEquals(new[] { EnumTipoValor.NombreUsuario, EnumTipoValor.Contraseña }))
                         throw new Exception("Comprobar Login requiere NombreUsuario y Contraseña.");
                     break;
-
                 case EnumOrigen.CrearCuenta:
-                    if (lista.Count != 1 ||
-                        !(tipos.Contains(EnumTipoValor.NombreUsuario) || tipos.Contains(EnumTipoValor.CorreoElectronico)))
+                    if (lista.Count != 1 || !(tipos.Contains(EnumTipoValor.NombreUsuario) || tipos.Contains(EnumTipoValor.CorreoElectronico)))
                         throw new Exception("Comprobar CrearCuenta requiere NombreUsuario o CorreoElectronico.");
                     break;
-
                 case EnumOrigen.OlvidarInformacion:
-                    // Permite enviar 1 o 2 propiedades: CorreoElectronico y/o CodigoConfirmacion
-                    var permitidos = new[] { EnumTipoValor.CorreoElectronico, EnumTipoValor.CodigoConfirmacion };
+                    var permitidos = new[] { EnumTipoValor.CorreoElectronico, EnumTipoValor.CodigoConfirmacion, EnumTipoValor.NombreUsuario };
                     if (lista.Count < 1 || lista.Count > 2 || !tipos.All(t => permitidos.Contains(t)))
                         throw new Exception("Comprobar OlvidarInformacion requiere una o dos propiedades: CorreoElectronico y/o CodigoConfirmacion.");
                     break;
-
                 default:
                     throw new InvalidOperationException("Origen desconocido para Comprobar.");
             }
