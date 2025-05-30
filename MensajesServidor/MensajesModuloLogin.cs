@@ -1,9 +1,5 @@
-﻿namespace MensajesServidor;
-
-public enum EnumOrigen { Login, CrearCuenta, OlvidarInformacion }
-public enum EnumTipoRespuesta { Comprobar, Guardar, Enviar }
-public enum EnumRespuesta { Existente, NoExistente, Error, Guardado, Enviado }
-public enum EnumTipoValor { NombreUsuario, CorreoElectronico, Contraseña, CodigoConfirmacion }
+﻿
+namespace MensajesServidor;
 
 public class Propiedad(EnumTipoValor tipoValor, string valor)
 {
@@ -25,7 +21,7 @@ public class MensajesModuloLogin
         EnumRespuesta? respuesta = null)
     {
         Origen = origen;
-        TipoRespuesta = ValidarTipoRespuesta(tipoRespuesta);
+         TipoRespuesta = ValidarTipoRespuesta(tipoRespuesta);
         Propiedades = ValidarPropiedades(propiedades);
         Respuesta = respuesta.HasValue
             ? ValidarRespuesta(respuesta.Value)
@@ -145,6 +141,11 @@ public class MensajesModuloLogin
                 default:
                     throw new InvalidOperationException("Origen desconocido para Comprobar.");
             }
+            return lista;
+        }
+
+        if (TipoRespuesta == EnumTipoRespuesta.Recuperar)
+        {
             return lista;
         }
 
